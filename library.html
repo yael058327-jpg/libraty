@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ספריית הכיתה</title>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<style>
+:root{--bg:#fdf8f1;--card:#fff;--tx:#2b2620;--mu:#7a6f62;--ac:#c2571a;--ok:#2e7d4f;--er:#b3261e;--bd:#e8dccb;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1a16;--card:#2a2620;--tx:#f1e9dc;--mu:#a89b8a;--ac:#f08a4b;--ok:#6fcf97;--er:#ff8a80;--bd:#40382f}}
+:root[data-theme="dark"]{--bg:#1d1a16;--card:#2a2620;--tx:#f1e9dc;--mu:#a89b8a;--ac:#f08a4b;--ok:#6fcf97;--er:#ff8a80;--bd:#40382f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;padding:12px;max-width:560px;margin-inline:auto}
+h1{font-size:20px;margin:6px 0 10px}
+nav{display:flex;gap:6px;margin-bottom:12px}
+nav button{flex:1;padding:10px 4px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;font-size:14px}
+nav button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+.big{font-size:20px;font-weight:700;margin:0 0 6px}
+.sub{color:var(--mu);margin:0 0 10px;font-size:15px}
+.ok{color:var(--ok)}.er{color:var(--er)}
+input,textarea{width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--bd);border-radius:10px;font-size:16px;background:var(--bg);color:var(--tx);font-family:inherit}
+button.p{padding:12px 16px;border:0;border-radius:10px;background:var(--ac);color:#fff;font-size:16px;margin-top:8px}
+button.s{padding:10px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);font-size:15px;margin-top:8px}
+#cam{display:none;margin-top:10px;border-radius:10px;overflow:hidden}
+.row{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.row:last-child{border:0}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.bc{border:1px dashed var(--bd);border-radius:8px;padding:8px;text-align:center;font-size:13px;background:#fff;color:#000;break-inside:avoid}
+.bc svg{max-width:100%}
+.hid{display:none}
+#warn{position:fixed;inset-inline-start:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:300px;background:var(--card);border:2px solid var(--er);border-radius:14px;padding:14px;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:20}
+#warn p{margin:6px 0}
+@media print{body{background:#fff;padding:0;max-width:none}nav,h1,.noprint{display:none!important}.grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+
+<meta name="NetsparkQuiltingResult" total-length="12020" removed="0" rules-found="w10679,w1696,w3390,w2655,w3012,w3065,w21217,w9571,w21337,w30964,w31048,w9572,w6223,w6224,w30329,w2686,w6563,w30661,w2577,w4748,w4749,w6565,w4989" />
+</head>
+<body>
+<h1>📚 ספריית הכיתה</h1>
+<nav>
+<button data-t="scan" class="on">סריקה</button>
+<button data-t="list">מושאלים</button>
+<button data-t="setup">הגדרות</button>
+<button data-t="print">הדפסה</button>
+</nav>
+
+<div id="warn" class="hid"><b>⚠️ כבר לקחה את הספר הזה בעבר</b><p id="wt"></p><button class="p" id="wgo">התעלמי והמשיכי</button> <button class="s" id="wno">ביטול</button></div>
+<section id="scan">
+<div class="card">
+<p class="big" id="st">סרקי ברקוד של תלמידה</p>
+<p class="sub" id="sb"></p>
+<input id="in" placeholder="סריקה או הקלדת קוד ולחיצה על Enter" autocomplete="off" inputmode="text">
+<button class="p" id="camBtn">📷 פתיחת מצלמה</button>
+<button class="s" id="photoBtn">📸 צילום ברקוד (אם המצלמה לא נפתחת)</button>
+<input type="file" id="photo" accept="image/*" capture="environment" class="hid">
+<div id="tmp" class="hid"></div>
+<button class="s hid" id="skip"></button>
+<button class="s hid" id="cancel">התחלה מחדש</button>
+<div id="cam"></div>
+</div>
+</section>
+
+<section id="list" class="hid"><div class="card" id="loans"></div></section>
+
+<section id="setup" class="hid">
+<div class="card">
+<p class="big">הוספת תלמידות</p>
+<p class="sub">שם בכל שורה</p>
+<textarea id="sn" rows="5"></textarea>
+<button class="p" id="addS">הוספה</button>
+</div>
+<div class="card">
+<p class="big">הוספת ספרים</p>
+<p class="sub">שם ספר בכל שורה</p>
+<textarea id="bn" rows="5"></textarea>
+<button class="p" id="addB">הוספה</button>
+</div>
+<div class="card"><p class="sub" id="cnt"></p></div>
+</section>
+
+<section id="print" class="hid">
+<button class="p noprint" onclick="window.print()">🖨️ הדפסה</button>
+<h3 class="noprint">תלמידות</h3><div class="grid" id="ps"></div>
+<h3 class="noprint">ספרים</h3><div class="grid" id="pb"></div>
+</section>
+
+<script>
+var $=function(s){return document.querySelector(s)};
+var D={students:{},books:{},loans:{}};
+try{var r=JSON.parse(localStorage.getItem("lib")||"null");if(r)D=r}catch(e){}
+function save(){try{localStorage.setItem("lib",JSON.stringify(D))}catch(e){}}
+var step="student",cur=null,held=null,sc=null,lastT="",lastAt=0,pend=null;
+
+document.querySelectorAll("nav button").forEach(function(b){b.onclick=function(){
+ document.querySelectorAll("nav button").forEach(function(x){x.classList.toggle("on",x===b)});
+ ["scan","list","setup","print"].forEach(function(t){$("#"+t).classList.toggle("hid",t!==b.dataset.t)});
+ if(b.dataset.t!=="scan")stopCam();
+ render();
+}});
+
+function bookOf(s){for(var b in D.loans)if(D.loans[b]===s)return b;return null}
+function say(t,sub,cls){$("#st").textContent=t;$("#st").className="big "+(cls||"");$("#sb").textContent=sub||""}
+function reset(){step="student";cur=null;held=null;pend=null;$("#warn").classList.add("hid");$("#skip").classList.add("hid");$("#cancel").classList.add("hid")}
+
+function prompt_(){
+ var sk=$("#skip"),ca=$("#cancel");
+ if(step==="student"){say("סרקי ברקוד של תלמידה","");sk.classList.add("hid");ca.classList.add("hid");return}
+ ca.classList.remove("hid");
+ if(step==="return"){say(D.students[cur]+": סרקי את הספר שהיא מחזירה","הספר: "+D.books[held]);sk.textContent="לא מחזירה כרגע";sk.classList.remove("hid")}
+ if(step==="borrow"){say(D.students[cur]+": סרקי את הספר החדש","");sk.textContent="לא לוקחת ספר חדש";sk.classList.remove("hid")}
+}
+
+function handle(c){
+ c=(c||"").trim().toUpperCase();if(!c||pend)return;
+ if(step==="student"){
+  if(!D.students[c]){say("קוד לא מוכר","זה לא ברקוד של תלמידה: "+c,"er");return}
+  cur=c;held=bookOf(c);step=held?"return":"borrow";prompt_();return}
+ if(step==="return"){
+  if(c!==held){say("זה לא הספר שלקחה","צריך להחזיר: "+D.books[held],"er");return}
+  rec(held);delete D.loans[held];save();step="borrow";prompt_();return}
+ if(step==="borrow"){
+  if(!D.books[c]){say("ספר לא מוכר","קוד: "+c,"er");return}
+  if(D.loans[c]&&D.loans[c]!==cur){say("הספר כבר מושאל","אצל "+D.students[D.loans[c]],"er");return}
+  if(((D.hist||{})[cur]||[]).indexOf(c)>-1){ask(c);return}
+  D.loans[c]=cur;rec(c);save();
+  var n=D.students[cur],t=D.books[c];reset();say("נרשם ✓","‏"+n+" לקחה: "+t,"ok")}
+}
+$("#in").addEventListener("keydown",function(e){if(e.key==="Enter"){handle(this.value);this.value=""}});
+$("#skip").onclick=function(){if(step==="return"){step="borrow";prompt_()}else{var n=D.students[cur];reset();say("נרשם ✓",n+" החזירה ולא לקחה ספר חדש","ok")}};
+$("#cancel").onclick=function(){reset();prompt_()};
+
+function stopCam(){if(sc){var s=sc;sc=null;s.stop().catch(function(){});$("#cam").style.display="none";$("#camBtn").textContent="📷 פתיחת מצלמה"}}
+$("#camBtn").onclick=function(){
+ if(sc){stopCam();return}
+ if(typeof Html5Qrcode==="undefined"){say("המצלמה לא זמינה","אפשר להקליד את הקוד בשדה","er");return}
+ $("#cam").style.display="block";$("#camBtn").textContent="סגירת מצלמה";
+ sc=new Html5Qrcode("cam",{formatsToSupport:[Html5QrcodeSupportedFormats.CODE_128]});
+ sc.start({facingMode:"environment"},{fps:10,qrbox:{width:260,height:110}},function(t){
+  var now=Date.now();if(t===lastT&&now-lastAt<2000)return;lastT=t;lastAt=now;handle(t)
+ },function(){}).catch(function(){stopCam();say("אין גישה למצלמה","אשרי הרשאה בדפדפן, או הקלידי את הקוד","er")});
+};
+
+$("#photoBtn").onclick=function(){$("#photo").click()};
+$("#photo").onchange=function(){
+ var f=this.files&&this.files[0];this.value="";if(!f)return;
+ if(typeof Html5Qrcode==="undefined"){say("הסריקה לא זמינה","אפשר להקליד את הקוד בשדה","er");return}
+ var q=new Html5Qrcode("tmp",{formatsToSupport:[Html5QrcodeSupportedFormats.CODE_128]});
+ q.scanFile(f,false).then(function(t){handle(t)}).catch(function(){say("לא זוהה ברקוד","נסי לצלם קרוב יותר ובאור טוב","er")});
+};
+function rec(c){D.hist=D.hist||{};var h=D.hist[cur]=D.hist[cur]||[];if(h.indexOf(c)<0)h.push(c)}
+function ask(c){pend=c;$("#wt").textContent=D.students[cur]+" לקחה בעבר: "+D.books[c];$("#warn").classList.remove("hid");say("שימו לב","ממתין להחלטה","er")}
+function borrow(c){D.loans[c]=cur;rec(c);save();var n=D.students[cur],t=D.books[c];reset();say("נרשם ✓",n+" לקחה: "+t,"ok")}
+$("#wgo").onclick=function(){$("#warn").classList.add("hid");var c=pend;pend=null;if(c)borrow(c)};
+$("#wno").onclick=function(){$("#warn").classList.add("hid");pend=null;prompt_()};
+function pad(n,l){return String(n).padStart(l,"0")}
+function lines(id){return $(id).value.split("\n").map(function(x){return x.trim()}).filter(Boolean)}
+$("#addS").onclick=function(){var k=Object.keys(D.students).length;lines("#sn").forEach(function(n){k++;D.students["S"+pad(k,2)]=n});$("#sn").value="";save();render()};
+$("#addB").onclick=function(){var k=Object.keys(D.books).length;lines("#bn").forEach(function(n){k++;D.books["B"+pad(k,3)]=n});$("#bn").value="";save();render()};
+
+function bcs(box,obj){
+ box.innerHTML="";
+ Object.keys(obj).forEach(function(id){
+  var d=document.createElement("div");d.className="bc";
+  var s=document.createElementNS("http://www.w3.org/2000/svg","svg");d.appendChild(s);
+  var l=document.createElement("div");l.textContent=obj[id];d.appendChild(l);box.appendChild(d);
+  try{JsBarcode(s,id,{format:"CODE128",height:44,fontSize:13,margin:2})}catch(e){}
+ });
+}
+function render(){
+ prompt_();
+ var h="",b;
+ var ks=Object.keys(D.loans);
+ h+="<p class='big'>"+ks.length+" ספרים מושאלים</p>";
+ ks.forEach(function(k){h+="<div class='row'><span></span><span></span></div>"});
+ $("#loans").innerHTML="";
+ var p=document.createElement("p");p.className="big";p.textContent=ks.length+" ספרים מושאלים";$("#loans").appendChild(p);
+ ks.forEach(function(k){
+  var r=document.createElement("div");r.className="row";
+  var a=document.createElement("span");a.textContent=D.books[k]||k;
+  var c=document.createElement("b");c.textContent=D.students[D.loans[k]]||D.loans[k];
+  r.appendChild(a);r.appendChild(c);$("#loans").appendChild(r)});
+ var free=Object.keys(D.students).filter(function(s){return !bookOf(s)});
+ if(free.length){var q=document.createElement("p");q.className="sub";q.style.marginTop="14px";q.textContent="בלי ספר כרגע: "+free.map(function(s){return D.students[s]}).join(", ");$("#loans").appendChild(q)}
+ $("#cnt").textContent=Object.keys(D.students).length+" תלמידות, "+Object.keys(D.books).length+" ספרים. הנתונים נשמרים במכשיר הזה, אז כדאי לעבוד תמיד עם אותו טלפון או טאבלט.";
+ if(!$("#print").classList.contains("hid")){bcs($("#ps"),D.students);bcs($("#pb"),D.books)}
+}
+render();
+</script>
+</body>
+</html>
